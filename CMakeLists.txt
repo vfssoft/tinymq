@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
-project(tinymq C)
+project(tinymq)
 
-set(CMAKE_C_STANDARD 99)
+add_subdirectory(src)
 
-add_library(tinymq)
+
