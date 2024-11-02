@@ -5,11 +5,10 @@ find_package(OpenSSL REQUIRED)
 set(PAHO_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/paho.mqtt.c")
 
 include_directories(
-        ../src
         ../include
-        ../libuv/include
         ${PAHO_ROOT_DIR}/build/include
         ${CMAKE_BINARY_DIR}/tinyserver/include
+        ${CMAKE_BINARY_DIR}/tinyunit/include
 )
 
 add_executable(tests
@@ -24,8 +23,6 @@ add_executable(tests
         mqtt_topic_test.c
         testutil.h
         testutil.c
-        tinyunit.h
-        tinyunit.c
         mytcp.h
         mytcp.c
         mymqtt.h
@@ -65,8 +62,16 @@ add_custom_target(
         PreBuildPaho ALL
         DEPENDS ${PAHO_ROOT_DIR}/build/lib/${MQTT3CS}
 )
-add_dependencies(tests PreBuildPaho)
 
+include (ExternalProject)
+ExternalProject_Add(
+        tinyunit
+        GIT_REPOSITORY https://github.com/vfssoft/tinyunit.git
+        GIT_TAG main
+        BUILD_IN_SOURCE 1
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/tinyunit  -DBUILD_SHARED_LIBS=OFF
+)
+add_dependencies(tests PreBuildPaho tinyunit)
 
-target_link_directories(tests PRIVATE ${PAHO_ROOT_DIR}/build/lib)
-target_link_libraries(tests server_lib tm_lib ${MQTT3CS} OpenSSL::SSL OpenSSL::Crypto)
+target_link_directories(tests PRIVATE ${PAHO_ROOT_DIR}/build/lib ${CMAKE_BINARY_DIR}/tinyunit/lib)
+target_link_libraries(tests server_lib tm_lib tinyunit_lib ${MQTT3CS} OpenSSL::SSL OpenSSL::Crypto)
