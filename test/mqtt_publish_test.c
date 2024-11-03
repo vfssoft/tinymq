@@ -155,15 +155,15 @@ static int mqtt_basic_pub_impl(int proto, const char* topic, int qos, char* payl
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_publisher_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_publisher_cb, (void*)&info);
   
   while (info.done == 0) {
     tm__run(server);
   }
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -189,13 +189,13 @@ static int mqtt_publish_a_msg(tm_t* server, int proto, const char* topic, int qo
   info.payload = payload;
   info.retain = retain;
   
-  uv_thread_t publisher_thread;
-  uv_thread_create(&publisher_thread, mqtt_client_publisher_cb, (void*)&info);
+  mythread_t publisher_thread;
+  thread_create(&publisher_thread, mqtt_client_publisher_cb, (void*)&info);
   while (info.done == 0) { tm__run(server); }
-  uv_thread_join(&publisher_thread);
+  thread_join(&publisher_thread);
   return 0;
 }
-static test_client_subscriber_info_t* mqtt_subscriber_start_ex(tm_t* server, uv_thread_t* thread, int proto, const char* topic, int qos, int timeoutms, const char* client_id, int clean_session, int skip_sub) {
+static test_client_subscriber_info_t* mqtt_subscriber_start_ex(tm_t* server, mythread_t* thread, int proto, const char* topic, int qos, int timeoutms, const char* client_id, int clean_session, int skip_sub) {
   test_client_subscriber_info_t* info = (test_client_subscriber_info_t*) malloc(sizeof(test_client_subscriber_info_t));
   memset(info, 0, sizeof(test_client_subscriber_info_t));
   info->proto = proto;
@@ -207,16 +207,16 @@ static test_client_subscriber_info_t* mqtt_subscriber_start_ex(tm_t* server, uv_
   info->exp_recv_count = 1;
   info->skip_sub = skip_sub;
   
-  uv_thread_create(thread, mqtt_client_subscriber_cb, (void*)info);
+  thread_create(thread, mqtt_client_subscriber_cb, (void*)info);
   while (info->subscribed == 0) { tm__run(server); }
   return info;
 }
-static test_client_subscriber_info_t* mqtt_subscriber_start(tm_t* server, uv_thread_t* thread, int proto, const char* topic, int qos, int timeoutms) {
+static test_client_subscriber_info_t* mqtt_subscriber_start(tm_t* server, mythread_t* thread, int proto, const char* topic, int qos, int timeoutms) {
   return mqtt_subscriber_start_ex(server, thread, proto, topic, qos, timeoutms, "tet_subscriber_client_id", 1, 0);
 }
-static int mqtt_subscriber_stop(tm_t* server, uv_thread_t* thread,  test_client_subscriber_info_t* info) {
+static int mqtt_subscriber_stop(tm_t* server, mythread_t* thread,  test_client_subscriber_info_t* info) {
   while (info->done == 0) { tm__run(server); }
-  uv_thread_join(thread);
+  thread_join(thread);
   return 0;
 }
 
@@ -226,7 +226,7 @@ static int mqtt_basic_pub_recv_impl(
     const char* sub_topic, int sub_qos
 ) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   tm_t* server;
   tm_callbacks_t cbs;
@@ -361,15 +361,15 @@ static int mqtt_connect_with_will_msg(tm_t* server, int proto, const char* topic
   info.retain = retain;
   info.disconnect_abnormal = disconnect_abnormal;
   
-  uv_thread_t publisher_thread;
-  uv_thread_create(&publisher_thread, mqtt_client_with_will_cb, (void*)&info);
+  mythread_t publisher_thread;
+  thread_create(&publisher_thread, mqtt_client_with_will_cb, (void*)&info);
   while (info.done == 0) { tm__run(server); }
-  uv_thread_join(&publisher_thread);
+  thread_join(&publisher_thread);
   return 0;
 }
 static int mqtt_basic_will_msg_impl(int proto, int disconnect_abnormal, int retain) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   const char* will_topic = "will_topic";
   char* payload = "hello will";
@@ -413,7 +413,7 @@ TEST_IMPL(mqtt_pub_will_if_client_disconnect_abnormally_retain) {
 
 TEST_IMPL(mqtt_retain_msg_current_subscription) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   int proto = TS_PROTO_TCP;
   const char* topic = "retain_topic";
@@ -445,7 +445,7 @@ TEST_IMPL(mqtt_retain_msg_current_subscription) {
 
 TEST_IMPL(mqtt_retain_msg_new_subscription) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   int proto = TS_PROTO_TCP;
   const char* topic = "retain_topic";
@@ -476,7 +476,7 @@ TEST_IMPL(mqtt_retain_msg_new_subscription) {
 }
 TEST_IMPL(mqtt_retain_msg_zero_byte) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   int proto = TS_PROTO_TCP;
   const char* topic = "retain_message_zero_byte_payload";
@@ -505,7 +505,7 @@ TEST_IMPL(mqtt_retain_msg_zero_byte) {
 }
 TEST_IMPL(mqtt_retain_msg_zero_byte_1) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   int proto = TS_PROTO_TCP;
   const char* topic = "retain_message_zero_byte_payload";
@@ -536,7 +536,7 @@ TEST_IMPL(mqtt_retain_msg_zero_byte_1) {
 }
 TEST_IMPL(mqtt_retain_msg_zero_byte_2) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   int proto = TS_PROTO_TCP;
   const char* topic = "retain_message_zero_byte_payload";
@@ -565,7 +565,7 @@ TEST_IMPL(mqtt_retain_msg_zero_byte_2) {
 }
 TEST_IMPL(mqtt_retain_msg_zero_byte_3) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   int proto = TS_PROTO_TCP;
   const char* topic = "retain_message_zero_byte_payload";
@@ -596,7 +596,7 @@ TEST_IMPL(mqtt_retain_msg_zero_byte_3) {
 }
 TEST_IMPL(mqtt_retain_msg_update_exist) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   int proto = TS_PROTO_TCP;
   const char* topic = "retain_message_topic";
@@ -628,7 +628,7 @@ TEST_IMPL(mqtt_retain_msg_update_exist) {
 
 TEST_IMPL(mqtt_retain_msg_kept_after_publisher_session_ends) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
 
   int proto = TS_PROTO_TCP;
   const char* topic = "retain_message_topic";
@@ -669,16 +669,16 @@ static int mqtt_connect_and_sub(tm_t* server, int proto, int clean_session, cons
   strcpy(info.topic, topic);
   info.qos = qos;
 
-  uv_thread_t conn_sub_thread;
-  uv_thread_create(&conn_sub_thread, mqtt_client_connect_sub_cb, (void*)&info);
+  mythread_t conn_sub_thread;
+  thread_create(&conn_sub_thread, mqtt_client_connect_sub_cb, (void*)&info);
   while (info.done == 0) { tm__run(server); }
-  uv_thread_join(&conn_sub_thread);
+  thread_join(&conn_sub_thread);
   return 0;
 }
 
 TEST_IMPL(mqtt_recv_offline_msgs_after_reconnect) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
 
   int proto = TS_PROTO_TCP;
   const char* client_id = "subscriber_with_clean_session";
@@ -712,7 +712,7 @@ TEST_IMPL(mqtt_recv_offline_msgs_after_reconnect) {
 
 TEST_IMPL(mqtt_no_offline_msgs_after_reconnect_with_clean_session) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
 
   int proto = TS_PROTO_TCP;
   const char* client_id = "subscriber_with_clean_session";
@@ -744,7 +744,7 @@ TEST_IMPL(mqtt_no_offline_msgs_after_reconnect_with_clean_session) {
 
 TEST_IMPL(mqtt_max_qos_of_all_subscriptions) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   int proto = TS_PROTO_TCP;
   const char* client_id = "subscriber_with_multiple_subscriptions";
@@ -780,7 +780,7 @@ TEST_IMPL(mqtt_max_qos_of_all_subscriptions) {
 
 TEST_IMPL(mqtt_update_subscribe_qos) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   int proto = TS_PROTO_TCP;
   const char* client_id = "subscriber";
@@ -811,7 +811,7 @@ TEST_IMPL(mqtt_update_subscribe_qos) {
 
 TEST_IMPL(mqtt_update_subscribe_qos_resent_retain_msg) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   int proto = TS_PROTO_TCP;
   const char* client_id = "subscriber";

@@ -55,11 +55,11 @@ static int mqtt_publish_msgs(tm_t* server, int proto, msgs_t* msgs, int pub_inte
   info.msgs = msgs;
   info.intervalms = pub_interval;
   
-  uv_thread_t publisher_thread;
+  mythread_t publisher_thread;
   
-  uv_thread_create(&publisher_thread, mqtt_client_publisher_cb, (void*)&info);
+  thread_create(&publisher_thread, mqtt_client_publisher_cb, (void*)&info);
   while (info.done == 0) { tm__run(server); }
-  uv_thread_join(&publisher_thread);
+  thread_join(&publisher_thread);
   return 0;
 }
 
@@ -125,7 +125,7 @@ static void mqtt_client_subscriber_cb(void *arg) {
   
   info->done = 1;
 }
-static test_client_subscriber_info_t* mqtt_subscriber_start_ex(tm_t* server, uv_thread_t* thread, int proto, const char* topic, int qos, int timeoutms, int exp_receive_count, const char* client_id, int clean_session, int skip_sub) {
+static test_client_subscriber_info_t* mqtt_subscriber_start_ex(tm_t* server, mythread_t* thread, int proto, const char* topic, int qos, int timeoutms, int exp_receive_count, const char* client_id, int clean_session, int skip_sub) {
   test_client_subscriber_info_t* info = (test_client_subscriber_info_t*) malloc(sizeof(test_client_subscriber_info_t));
   memset(info, 0, sizeof(test_client_subscriber_info_t));
   info->proto = proto;
@@ -137,23 +137,23 @@ static test_client_subscriber_info_t* mqtt_subscriber_start_ex(tm_t* server, uv_
   info->exp_recv_count = exp_receive_count;
   info->skip_sub = skip_sub;
   
-  uv_thread_create(thread, mqtt_client_subscriber_cb, (void*)info);
+  thread_create(thread, mqtt_client_subscriber_cb, (void*)info);
   while (info->subscribed == 0) { tm__run(server); }
   return info;
 }
-static test_client_subscriber_info_t* mqtt_subscriber_start(tm_t* server, uv_thread_t* thread, int proto, const char* topic, int qos, int timeoutms, int exp_receive_count) {
+static test_client_subscriber_info_t* mqtt_subscriber_start(tm_t* server, mythread_t* thread, int proto, const char* topic, int qos, int timeoutms, int exp_receive_count) {
   return mqtt_subscriber_start_ex(server, thread, proto, topic, qos, timeoutms, exp_receive_count, "tet_subscriber_client_id", 1, 0);
 }
-static int mqtt_subscriber_stop(tm_t* server, uv_thread_t* thread,  test_client_subscriber_info_t* info) {
+static int mqtt_subscriber_stop(tm_t* server, mythread_t* thread,  test_client_subscriber_info_t* info) {
   while (info->done == 0) { tm__run(server); }
-  uv_thread_join(thread);
+  thread_join(thread);
   return 0;
 }
 
 
 static int mqtt_singe_pub_single_single_sub_many_msgs_impl(int proto, int msg_count, int qos) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   msgs_t* msgs;
   
   tm_t* server;

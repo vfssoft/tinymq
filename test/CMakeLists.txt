@@ -4,8 +4,11 @@ project(tests)
 find_package(OpenSSL REQUIRED)
 set(PAHO_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/paho.mqtt.c")
 
+add_definitions(-DTHREAD_API)
+
 include_directories(
         ../include
+        ../src
         ${PAHO_ROOT_DIR}/build/include
         ${CMAKE_BINARY_DIR}/tinyserver/include
         ${CMAKE_BINARY_DIR}/tinyunit/include
@@ -73,5 +76,5 @@ ExternalProject_Add(
 )
 add_dependencies(tests PreBuildPaho tinyunit)
 
-target_link_directories(tests PRIVATE ${PAHO_ROOT_DIR}/build/lib ${CMAKE_BINARY_DIR}/tinyunit/lib)
+target_link_directories(tests PRIVATE ${PAHO_ROOT_DIR}/build/lib ${CMAKE_BINARY_DIR}/tinyserver/lib ${CMAKE_BINARY_DIR}/tinyunit/lib)
 target_link_libraries(tests server_lib tm_lib tinyunit_lib ${MQTT3CS} OpenSSL::SSL OpenSSL::Crypto)

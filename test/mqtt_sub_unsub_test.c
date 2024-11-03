@@ -67,8 +67,8 @@ static int mqtt_sub_unsub_impl(const char* topic, int qos) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_sub_unsub_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_sub_unsub_cb, (void*)&info);
   
   while (info.done == 0) {
     tm__run(server);
@@ -77,7 +77,7 @@ static int mqtt_sub_unsub_impl(const char* topic, int qos) {
   ASSERT_EQ(info.unsub_fired, 1);
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -109,8 +109,8 @@ static int mqtt_unsub_non_exist_impl(const char* sub_topic,const char* unsub_top
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_sub_unsub_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_sub_unsub_cb, (void*)&info);
   
   while (info.done == 0) {
     tm__run(server);
@@ -119,7 +119,7 @@ static int mqtt_unsub_non_exist_impl(const char* sub_topic,const char* unsub_top
   ASSERT_EQ(info.unsub_fired, 1);
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -200,8 +200,8 @@ static int mqtt_sub_unsub_many_impl(const char** sub_topics, int sub_topics_coun
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_sub_unsub_many_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_sub_unsub_many_cb, (void*)&info);
   
   while (info.done == 0) {
     tm__run(server);
@@ -210,7 +210,7 @@ static int mqtt_sub_unsub_many_impl(const char** sub_topics, int sub_topics_coun
   ASSERT_EQ(info.unsub_fired, unsub_topics_count);
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -305,15 +305,15 @@ TEST_IMPL(mqtt_grant_low_qos_value) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_grant_low_qos_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_grant_low_qos_cb, (void*)&info);
   
   while (info.done == 0) {
     tm__run(server);
   }
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }

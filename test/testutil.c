@@ -1,6 +1,7 @@
 
 #include "testutil.h"
 #include "tinyunit.h"
+#include <assert.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -122,55 +123,6 @@ void decode_hex(const char* hex, unsigned char* bytes) {
   }
 }
 
-long long get_current_time_millis() {
-#ifdef _WIN32
-  FILETIME ft;
-  LARGE_INTEGER li;
-  
-  GetSystemTimePreciseAsFileTime(&ft);
-  
-  li.LowPart = ft.dwLowDateTime;
-  li.HighPart = ft.dwHighDateTime;
-  
-  return (long long)(li.QuadPart / 10000LL - 11644473600000LL);
-#else
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
-#endif
-}
-
-long get_current_process_memory_usage() {
-#ifdef _WIN32
-  PROCESS_MEMORY_COUNTERS_EX pmc;
-  if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
-    return pmc.PrivateUsage;
-  } else {
-    return -1;
-  }
-#else
-  struct rusage ru;
-  if (getrusage(RUSAGE_SELF, &ru) == 0) {
-      return ru.ru_maxrss * 1024; // Convert kilobytes to bytes
-  } else {
-      return -1;
-  }
-#endif
-}
-
-void wait(int milliseconds) {
-  unsigned long long end_time_marker = get_current_time_millis() + milliseconds;
-  while (get_current_time_millis() < end_time_marker) {
-    mysleep(20);
-  }
-}
-void mysleep(int milliseconds) {
-#ifdef _WIN32
-  Sleep(milliseconds);
-#else
-  usleep(milliseconds);
-#endif
-}
 
 static int encode_short(char* buf, int val) {
   buf[0] = (char)((val & 0xFF00) >> 8);

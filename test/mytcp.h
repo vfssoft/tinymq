@@ -16,7 +16,6 @@
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include <uv.h>
 
 #include "internal/ts_data_buf.h"
 #include "internal/ts_miscellany.h"

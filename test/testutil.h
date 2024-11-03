@@ -12,6 +12,8 @@
 
 #define RESET_STRUCT(s) memset(&s, 0, sizeof(s))
 
+#define ARRAYSIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
 const char* cur_dir();
 
 ts_t* start_server(int proto);
@@ -22,9 +24,6 @@ tm_t* start_mqtt_server_custom_port(int proto, int listen_port, tm_callbacks_t* 
 void assert_bytes_equals(const char* d1, int d1len, const char* d2, int d2len);
 
 void decode_hex(const char* hex, unsigned char* bytes);
-
-long long get_current_time_millis();
-long get_current_process_memory_usage();
 
 void wait(int milliseconds);
 void mysleep(int milliseconds);

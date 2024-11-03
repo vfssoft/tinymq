@@ -6,21 +6,41 @@
 
 static int WSA_START_UP = 0;
 static int OPENSSL_INITIALIZED = 0;
-static uv_mutex_t mutex;
+#ifdef _WIN32
+static CRITICAL_SECTION mutex;
+#else // _WIN32
+static pthread_mutex_t mutex;
+#endif // _WIN32
 
 static void lock() {
-  uv_mutex_lock(&mutex);
+#if _WIN32
+  EnterCriticalSection(&mutex);
+#else
+  pthread_mutex_lock(&mutex);
+#endif
 }
 static void unlock() {
-  uv_mutex_unlock(&mutex);
+#if _WIN32
+  LeaveCriticalSection(&mutex);
+#else
+  pthread_mutex_unlock(&mutex);
+#endif
 }
 
 int mytcp__init_mutex() {
-  uv_mutex_init(&mutex);
+#if _WIN32
+  InitializeCriticalSection(&mutex);
+#else // _WIN32
+  pthread_mutex_init(&mutex, NULL);
+#endif
   return 0;
 }
 int mytcp__destroy_mutex() {
-  uv_mutex_destroy(&mutex);
+#if _WIN32
+  DeleteCriticalSection(&mutex);
+#else // _WIN32
+  pthread_mutex_destroy(&mutex);
+#endif
   return 0;
 }
 

@@ -53,8 +53,8 @@ static int mqtt_invalid_first_packet_imp(const char* pkt, int len) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_send_invalid_pkt_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_send_invalid_pkt_cb, (void*)&info);
   
   while (info.recv_done == 0) {
     tm__run(server);
@@ -62,7 +62,7 @@ static int mqtt_invalid_first_packet_imp(const char* pkt, int len) {
   ASSERT_EQ(info.recv_buf_len, 0);
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -169,8 +169,8 @@ static int mqtt_two_connects_imp(const char* pkt, int len) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_two_connects_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_two_connects_cb, (void*)&info);
   
   while (info.recv_done == 0) {
     tm__run(server);
@@ -182,7 +182,7 @@ static int mqtt_two_connects_imp(const char* pkt, int len) {
   ASSERT_EQ(info.recv_buf[3], 0x00);
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -239,15 +239,15 @@ static int mqtt_valid_connect_connack_imp(invalid_connect_connack_info_t* info) 
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_invalid_connect_connack_cb, (void*)info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_invalid_connect_connack_cb, (void*)info);
   
   while (info->recv_done == 0) {
     tm__run(server);
   }
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -348,15 +348,15 @@ static int mqtt_keep_alive_timed_out_imp() {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_timed_out_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_timed_out_cb, (void*)&info);
   
   while (info.done == 0) {
     tm__run(server);
   }
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -396,15 +396,15 @@ static int mqtt_no_pkt_after_connected_imp() {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_on_pkt_after_connected_cb, (void*)&done);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_on_pkt_after_connected_cb, (void*)&done);
   
   while (done == 0) {
     tm__run(server);
   }
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -467,15 +467,15 @@ static int mqtt_invalid_second_packet_imp(const char* pkt, int len) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_send_invalid_second_pkt_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_send_invalid_second_pkt_cb, (void*)&info);
   
   while (info.done == 0) {
     tm__run(server);
   }
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }

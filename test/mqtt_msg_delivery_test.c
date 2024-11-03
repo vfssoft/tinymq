@@ -51,10 +51,10 @@ static int mqtt_publish_a_msg(tm_t* server, int proto, const char* topic, int qo
   info.payload = payload;
   info.retain = retain;
   
-  uv_thread_t publisher_thread;
-  uv_thread_create(&publisher_thread, mqtt_client_publisher_cb, (void*)&info);
+  mythread_t publisher_thread;
+  thread_create(&publisher_thread, mqtt_client_publisher_cb, (void*)&info);
   while (info.done == 0) { tm__run(server); }
-  uv_thread_join(&publisher_thread);
+  thread_join(&publisher_thread);
   return 0;
 }
 
@@ -119,7 +119,7 @@ static void mqtt_client_subscriber_cb(void *arg) {
   
   info->done = 1;
 }
-static test_client_subscriber_info_t* mqtt_subscriber_start_ex(tm_t* server, uv_thread_t* thread, int proto, const char* topic, int qos, int timeoutms, const char* client_id, int clean_session, int skip_sub) {
+static test_client_subscriber_info_t* mqtt_subscriber_start_ex(tm_t* server, mythread_t* thread, int proto, const char* topic, int qos, int timeoutms, const char* client_id, int clean_session, int skip_sub) {
   test_client_subscriber_info_t* info = (test_client_subscriber_info_t*) malloc(sizeof(test_client_subscriber_info_t));
   memset(info, 0, sizeof(test_client_subscriber_info_t));
   info->proto = proto;
@@ -131,16 +131,16 @@ static test_client_subscriber_info_t* mqtt_subscriber_start_ex(tm_t* server, uv_
   info->exp_recv_count = 1;
   info->skip_sub = skip_sub;
   
-  uv_thread_create(thread, mqtt_client_subscriber_cb, (void*)info);
+  thread_create(thread, mqtt_client_subscriber_cb, (void*)info);
   while (info->subscribed == 0) { tm__run(server); }
   return info;
 }
-static test_client_subscriber_info_t* mqtt_subscriber_start(tm_t* server, uv_thread_t* thread, int proto, const char* topic, int qos, int timeoutms) {
+static test_client_subscriber_info_t* mqtt_subscriber_start(tm_t* server, mythread_t* thread, int proto, const char* topic, int qos, int timeoutms) {
   return mqtt_subscriber_start_ex(server, thread, proto, topic, qos, timeoutms, "tet_subscriber_client_id", TRUE, FALSE);
 }
-static int mqtt_subscriber_stop(tm_t* server, uv_thread_t* thread,  test_client_subscriber_info_t* info) {
+static int mqtt_subscriber_stop(tm_t* server, mythread_t* thread,  test_client_subscriber_info_t* info) {
   while (info->done == 0) { tm__run(server); }
-  uv_thread_join(thread);
+  thread_join(thread);
   return 0;
 }
 
@@ -216,8 +216,8 @@ TEST_IMPL(mqtt_msg_delivery__server_resend_publish_qos1) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, client_server_resend_publish_qos1_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, client_server_resend_publish_qos1_cb, (void*)&info);
   
   mqtt_publish_a_msg(server, TS_PROTO_TCP, "test", 1, "hello", 5, FALSE);
   
@@ -226,7 +226,7 @@ TEST_IMPL(mqtt_msg_delivery__server_resend_publish_qos1) {
   }
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -289,7 +289,7 @@ static void mqtt_msg_delivery__client_resend_publish_qos1_msg_cb(void* ctx, tm_t
 }
 TEST_IMPL(mqtt_msg_delivery__client_resend_publish_qos1) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   client_resend_publish_qos1_info_t info;
   RESET_STRUCT(info);
@@ -305,8 +305,8 @@ TEST_IMPL(mqtt_msg_delivery__client_resend_publish_qos1) {
   
   subscriber_info = mqtt_subscriber_start(server, &subscriber_thread, TS_PROTO_TCP, "test", 1, 2000);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, client_client_resend_publish_qos1_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, client_client_resend_publish_qos1_cb, (void*)&info);
   
   mqtt_subscriber_stop(server, &subscriber_thread, subscriber_info);
   tm__stop(server);
@@ -385,8 +385,8 @@ TEST_IMPL(mqtt_msg_delivery__server_resend_publish_qos2) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, client_server_resend_publish_qos2_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, client_server_resend_publish_qos2_cb, (void*)&info);
   
   mqtt_publish_a_msg(server, TS_PROTO_TCP, "test", 2, "hello", 5, FALSE);
   
@@ -395,7 +395,7 @@ TEST_IMPL(mqtt_msg_delivery__server_resend_publish_qos2) {
   }
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -482,8 +482,8 @@ TEST_IMPL(mqtt_msg_delivery__server_resend_pubrel) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, client_server_resend_pubrel_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, client_server_resend_pubrel_cb, (void*)&info);
   
   mqtt_publish_a_msg(server, TS_PROTO_TCP, "test", 2, "hello", 5, FALSE);
   
@@ -492,7 +492,7 @@ TEST_IMPL(mqtt_msg_delivery__server_resend_pubrel) {
   }
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -563,7 +563,7 @@ static void mqtt_msg_delivery__client_resend_pubrel_msg_cb(void* ctx, tm_t* mqt,
 }
 TEST_IMPL(mqtt_msg_delivery__client_resend_pubrel) {
   test_client_subscriber_info_t* subscriber_info;
-  uv_thread_t subscriber_thread;
+  mythread_t subscriber_thread;
   
   client_resend_publish_qos1_info_t info;
   RESET_STRUCT(info);
@@ -579,8 +579,8 @@ TEST_IMPL(mqtt_msg_delivery__client_resend_pubrel) {
   
   subscriber_info = mqtt_subscriber_start(server, &subscriber_thread, TS_PROTO_TCP, "test", 2, 2000);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, client_client_resend_pubrel_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, client_client_resend_pubrel_cb, (void*)&info);
   
   mqtt_subscriber_stop(server, &subscriber_thread, subscriber_info);
   tm__stop(server);

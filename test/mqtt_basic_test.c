@@ -1,5 +1,5 @@
 #include <tm.h>
-#include "tinyunit.h"
+#include <tinyunit.h>
 #include "testutil.h"
 #include "mymqtt.h"
 
@@ -65,7 +65,7 @@ static void mqtt_client_connect_cb(void *arg) {
   err = mymqtt__connect(&client);
   ASSERT_EQ(err, 0);
   
-  uv_sleep(500);
+  mysleep(500);
   
   err = mymqtt__disconnect(&client);
   ASSERT_EQ(err, 0);
@@ -83,8 +83,8 @@ static int mqtt_connect_imp(int proto) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_connect_cb, (void*)&proto);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_connect_cb, (void*)&proto);
   
   while (conn_info.connected_fired == 0) {
     tm__run(server);
@@ -102,7 +102,7 @@ static int mqtt_connect_imp(int proto) {
   ASSERT_PTR_NE(conn_info.conn, NULL);
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -155,8 +155,8 @@ static int mqtt_auth_user_impl(int auth_fail) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_connect_with_user_password_cb, (void*)&conn_info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_connect_with_user_password_cb, (void*)&conn_info);
   
   if (conn_info.auth_fail) {
     while (conn_info.auth_fired == 0) tm__run(server);
@@ -169,7 +169,7 @@ static int mqtt_auth_user_impl(int auth_fail) {
   
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   
   return 0;
 }
@@ -232,13 +232,13 @@ static int mqtt_two_clients_with_same_clientid_impl(int proto) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
 
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_two_client_with_same_clientid_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_two_client_with_same_clientid_cb, (void*)&info);
 
   while (info.done == 0) { tm__run(server); }
 
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
 
   return 0;
 }
@@ -276,14 +276,14 @@ static int mqtt_invalid_transport_protocol_impl(int server_proto, int server_por
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_connect_with_invalid_protocol_cb, (void*)&conn_info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_connect_with_invalid_protocol_cb, (void*)&conn_info);
   
   while (conn_info.client_err == 0) tm__run(server);
   ASSERT_NE(conn_info.client_err, 0);
 
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   return 0;
 }
 
@@ -367,13 +367,13 @@ static int mqtt_conn_ack_sp_impl(int clean_session) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_conn_ack_sp_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_conn_ack_sp_cb, (void*)&info);
   
   while (info.done == 0) tm__run(server);
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   return 0;
 }
 
@@ -418,13 +418,13 @@ static int mqtt_different_length_client_id_impl(const char* client_id) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_different_length_client_id_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_different_length_client_id_cb, (void*)&info);
   
   while (info.done == 0) tm__run(server);
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   return 0;
 }
 TEST_IMPL(mqtt_zero_length_client_id_test) {
@@ -483,13 +483,13 @@ static int mqtt_ping_impl(int keep_alive) {
   int r = tm__start(server);
   ASSERT_EQ(r, 0);
   
-  uv_thread_t client_thread;
-  uv_thread_create(&client_thread, mqtt_client_ping_client_cb, (void*)&info);
+  mythread_t client_thread;
+  thread_create(&client_thread, mqtt_client_ping_client_cb, (void*)&info);
   
   while (info.done == 0) tm__run(server);
   
   tm__stop(server);
-  uv_thread_join(&client_thread);
+  thread_join(&client_thread);
   return 0;
 }
 
