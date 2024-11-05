@@ -37,9 +37,11 @@ add_executable(tests
 if (WIN32)
     set(MQTT3CS "paho-mqtt3cs-static.lib")
     set(MQTT_LIB_SUBDIR "Debug/")
+    set(SYS_DLL Psapi Iphlpapi Userenv Dbghelp)
 else()
     set(MQTT3CS "libpaho-mqtt3cs.a")
     set(MQTT_LIB_SUBDIR "")
+    set(SYS_DLL)
 endif()
 
 # Automatically build paho.mqtt.c
@@ -76,5 +78,5 @@ ExternalProject_Add(
 )
 add_dependencies(tests PreBuildPaho tinyunit)
 
-target_link_directories(tests PRIVATE ${PAHO_ROOT_DIR}/build/lib ${CMAKE_BINARY_DIR}/tinyserver/lib ${CMAKE_BINARY_DIR}/tinyunit/lib)
-target_link_libraries(tests server_lib tm_lib tinyunit_lib ${MQTT3CS} OpenSSL::SSL OpenSSL::Crypto)
+target_link_directories(tests PRIVATE ${PAHO_ROOT_DIR}/build/lib ${CMAKE_BINARY_DIR}/tinyserver/lib ${CMAKE_BINARY_DIR}/libuv/lib ${CMAKE_BINARY_DIR}/tinyunit/lib)
+target_link_libraries(tests ts tm_lib tinyunit_lib libuv ${MQTT3CS} OpenSSL::SSL OpenSSL::Crypto ${SYS_DLL})
