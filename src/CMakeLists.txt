@@ -13,6 +13,7 @@ ExternalProject_Add(
         GIT_TAG v1.x
         BUILD_IN_SOURCE 1
         CMAKE_ARGS -DLIBUV_BUILD_SHARED=FALSE -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/libuv -DBUILD_SHARED_LIBS=OFF
+        UPDATE_COMMAND ""
 )
 add_dependencies(tm_lib uv)
 
@@ -22,6 +23,7 @@ ExternalProject_Add(
         GIT_TAG main
         BUILD_IN_SOURCE 1
         CMAKE_ARGS -DUSE_STATIC_OPENSSL=FALSE -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/tinyserver -DBUILD_SHARED_LIBS=OFF
+        UPDATE_COMMAND ""
 )
 add_dependencies(tm_lib tinyserver)
 
