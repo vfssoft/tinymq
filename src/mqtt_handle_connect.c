@@ -25,7 +25,7 @@ static void tm_mqtt_conn__generate_client_id(ts_t* server, ts_conn_t* c, char* c
   sprintf(client_id, "tmp_client_id_%s_%" PRIu64 "%" PRIu64, remote_host, (uint64_t)c, (uint64_t) random_val);
 }
 
-static int tm_mqtt_conn__send_connack(ts_t* server, ts_conn_t* c, BOOL sp, int return_code) {
+static int tm_mqtt_conn__send_connack(ts_t* server, ts_conn_t* c, int sp, int return_code) {
   tm_mqtt_conn_t* conn = (tm_mqtt_conn_t*) ts_server__get_conn_user_data(server, c);
   char connack[4] = { 0x20, 0x02, (char)(sp & 0xFF), (char)(return_code & 0xFF) };
   LOG_DUMP(connack, 4, "[%s][%s] Send [CONNACK]", ts_server__get_conn_remote_host(server, c), conn->session == NULL ? "CLIENT_ID_PLACEHOLDER" : conn->session->client_id);
@@ -33,7 +33,7 @@ static int tm_mqtt_conn__send_connack(ts_t* server, ts_conn_t* c, BOOL sp, int r
 }
 
 static void tm_mqtt_conn__send_connack_abort(ts_t* server, ts_conn_t* c, int return_code) {
-  tm_mqtt_conn__send_connack(server, c, FALSE, return_code); // ignore error
+  tm_mqtt_conn__send_connack(server, c, 0, return_code); // ignore error
   tm_mqtt_conn__abort(server, c);
 }
 
@@ -52,10 +52,10 @@ int tm_mqtt_conn__process_connect(ts_t* server, ts_conn_t* c, const char* pkt_by
   ts_buf_t* will_topic = NULL;
   ts_buf_t* username = NULL;
   ts_buf_t* password = NULL;
-  BOOL auth_ok = FALSE;
+  int auth_ok = 0;
   char client_id[MAX_CLIENT_ID_LEN];
-  BOOL session_present = FALSE;
-  BOOL clean_session;
+  int session_present = 0;
+  int clean_session;
   tm_packet_decoder_t* decoder;
   ts_error_t errt;
   const char* conn_id = ts_server__get_conn_remote_host(server, c);

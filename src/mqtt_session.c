@@ -53,14 +53,14 @@ void* tm_mqtt_session__detach(tm_mqtt_session_t* sess) {
     if (tm_mqtt_msg__qos(msg) == 0) {
       tm_mqtt_session__remove_out_msg(sess, msg);
     } else {
-      tm_mqtt_msg__set_failed(msg, TRUE);
+      tm_mqtt_msg__set_failed(msg, 1);
     }
   }
   DL_FOREACH_SAFE(sess->in_msgs, msg, tmp) {
     if (tm_mqtt_msg__qos(msg) == 0) {
       tm_mqtt_session__remove_in_msg(sess, msg);
     } else {
-      tm_mqtt_msg__set_failed(msg, TRUE);
+      tm_mqtt_msg__set_failed(msg, 1);
     }
   }
 
@@ -127,22 +127,22 @@ tm_session_mgr_t* tm_session_mgr__create() {
     return NULL;
   }
   memset(mgr, 0, sizeof(tm_session_mgr_t));
-  
-  ts_mutex__init(&(mgr->mu));
-  
+
+  mgr->mu = ts_mutex__create();
+
   return mgr;
 }
 void tm_session_mgr__destroy(tm_session_mgr_t* mgr) {
-  ts_mutex__destroy(&(mgr->mu));
+  ts_mutex__destroy(mgr->mu);
   ts__free(mgr);
 }
 
 tm_mqtt_session_t* tm_session_mgr__find(tm_session_mgr_t* mgr, const char* client_id) {
   tm_mqtt_session_t* sess;
   
-  ts_mutex__lock(&(mgr->mu));
+  ts_mutex__lock(mgr->mu);
   HASH_FIND_STR(mgr->sessions, client_id, sess);
-  ts_mutex__unlock(&(mgr->mu));
+  ts_mutex__unlock(mgr->mu);
   
   return sess;
 }
@@ -154,16 +154,16 @@ tm_mqtt_session_t* tm_session_mgr__add(tm_session_mgr_t* mgr, const char* client
     return NULL;
   }
   
-  ts_mutex__lock(&(mgr->mu));
+  ts_mutex__lock(mgr->mu);
   HASH_ADD_STR(mgr->sessions, client_id, sess);
-  ts_mutex__unlock(&(mgr->mu));
+  ts_mutex__unlock(mgr->mu);
   
   return sess;
 }
 int tm_session_mgr__delete(tm_session_mgr_t* mgr, tm_mqtt_session_t* sess) {
-  ts_mutex__lock(&(mgr->mu));
+  ts_mutex__lock(mgr->mu);
   HASH_DEL(mgr->sessions, sess);
-  ts_mutex__unlock(&(mgr->mu));
+  ts_mutex__unlock(mgr->mu);
   
   tm_mqtt_session__destroy(sess);
   return 0;

@@ -25,7 +25,7 @@ struct tm_mqtt_session_s {
 };
 
 struct tm_session_mgr_s {
-    ts_mutex_t mu;
+    ts_mutex_t* mu;
     tm_mqtt_session_t* sessions;
 };
 

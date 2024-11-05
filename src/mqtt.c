@@ -324,7 +324,7 @@ void tm__remove_message(tm_server_t* s, tm_mqtt_msg_t* msg) {
   tm_msg_mgr__unuse(s->msg_mgr, msg);
 }
 
-static int tm__dispatch_msg_to_subscriber(tm_server_t* s, ts_conn_t* c, tm_mqtt_msg_t* src_msg, tm_mqtt_session_t* sess, int sub_qos, BOOL retain) {
+static int tm__dispatch_msg_to_subscriber(tm_server_t* s, ts_conn_t* c, tm_mqtt_msg_t* src_msg, tm_mqtt_session_t* sess, int sub_qos, int retain) {
   ts_t* server;
   tm_mqtt_conn_t* conn;
   tm_mqtt_msg_t* new_msg;
@@ -336,7 +336,7 @@ static int tm__dispatch_msg_to_subscriber(tm_server_t* s, ts_conn_t* c, tm_mqtt_
   
   new_qos = sub_qos < tm_mqtt_msg__qos(src_msg) ? sub_qos : tm_mqtt_msg__qos(src_msg);
   
-  new_msg = tm_msg_mgr__dup(s->msg_mgr, src_msg, FALSE, new_qos, retain);
+  new_msg = tm_msg_mgr__dup(s->msg_mgr, src_msg, 0, new_qos, retain);
   if (new_msg == NULL) {
     LOG_ERROR("[%s] Out of memory", sess->client_id);
     tm_mqtt_conn__abort(server, c);
@@ -350,8 +350,8 @@ static int tm__dispatch_msg_to_subscriber(tm_server_t* s, ts_conn_t* c, tm_mqtt_
       tm_mqtt_msg__id(src_msg),
       tm_mqtt_msg__id(new_msg),
       new_qos,
-      FALSE,
-      FALSE
+      0,
+      0
   );
 
   tm_mqtt_session__add_out_msg(sess, new_msg);
@@ -371,7 +371,7 @@ int tm__on_retain_message(tm_server_t* s, ts_conn_t* c, tm_mqtt_msg_t* msg) {
   tm_mqtt_msg_t* new_retain_msg;
   tm_mqtt_msg_t* removed_retain_msg = NULL;
   
-  new_retain_msg = tm_msg_mgr__dup(s->msg_mgr, msg, FALSE, tm_mqtt_msg__qos(msg), TRUE);
+  new_retain_msg = tm_msg_mgr__dup(s->msg_mgr, msg, 0, tm_mqtt_msg__qos(msg), 1);
   err = tm_topics__retain_msg(s->topics, new_retain_msg, &removed_retain_msg);
   if (err) {
     return err; // fatal error
@@ -412,7 +412,7 @@ int tm__on_publish_received(tm_server_t* s, ts_conn_t* c, tm_mqtt_msg_t* msg) {
         if (max_qos == 2) break;
       }
     }
-    tm__dispatch_msg_to_subscriber(s, c, msg, cur_subscriber->subscriber, max_qos, FALSE);
+    tm__dispatch_msg_to_subscriber(s, c, msg, cur_subscriber->subscriber, max_qos, 0);
   }
   tm_matched_subscribers__destroy(subscribers);
   
@@ -439,7 +439,7 @@ int tm__on_subscription(tm_server_t* s, ts_conn_t* c, const char* topic, int gra
   }
   for (int i = 0; i < ts_ptr_arr__get_count(retain_msgs); i++) {
     retain_msg = ts_ptr_arr__at(retain_msgs, i);
-    tm__dispatch_msg_to_subscriber(s, c, retain_msg, conn->session, granted_qos, TRUE);
+    tm__dispatch_msg_to_subscriber(s, c, retain_msg, conn->session, granted_qos, 1);
   }
   ts_ptr_arr__destroy(retain_msgs);
   

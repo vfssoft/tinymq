@@ -170,11 +170,11 @@ int tm_mqtt_msg__update_state(tm_mqtt_msg_t* msg) {
   
   return 0;
 }
-int tm_mqtt_msg__set_failed(tm_mqtt_msg_t* msg, BOOL failed) {
+int tm_mqtt_msg__set_failed(tm_mqtt_msg_t* msg, int failed) {
   msg->failed = failed;
   return 0;
 }
-BOOL tm_mqtt_msg__failed(tm_mqtt_msg_t* msg) {
+int tm_mqtt_msg__failed(tm_mqtt_msg_t* msg) {
   return msg->failed;
 }
 
@@ -188,13 +188,13 @@ tm_msg_mgr_t* tm_msg_mgr__create() {
   memset(mgr, 0, sizeof(tm_msg_mgr_t));
   
   mgr->next_msg_id = 1; // start from 1
-  
-  ts_mutex__init(&(mgr->mu));
+
+  mgr->mu = ts_mutex__create();
   
   return mgr;
 }
 int tm_msg_mgr__destroy(tm_msg_mgr_t* mgr) {
-  ts_mutex__destroy(&(mgr->mu));
+  ts_mutex__destroy(mgr->mu);
   
   // TODO: free messages, cores
   
@@ -220,15 +220,15 @@ tm_mqtt_msg_t* tm_msg_mgr__add(tm_msg_mgr_t* mgr, const char* topic, const char*
   msg->msg_core = msg_core;
   msg->flags = (dup ? 0x08 : 0x00) | (qos << 1) | retain;
   msg->state = MSG_STATE_INIT;
-  msg->failed = FALSE;
+  msg->failed = 0;
   
-  ts_mutex__lock(&(mgr->mu));
+  ts_mutex__lock(mgr->mu);
   msg->id = mgr->next_msg_id;
   mgr->next_msg_id++; // assume it won't overflow
   
   DL_APPEND(mgr->message_cores, msg_core);
   DL_APPEND(mgr->messages, msg);
-  ts_mutex__unlock(&(mgr->mu));
+  ts_mutex__unlock(mgr->mu);
   
   return msg;
 }
@@ -248,20 +248,20 @@ tm_mqtt_msg_t* tm_msg_mgr__dup(tm_msg_mgr_t* mgr, tm_mqtt_msg_t* src_msg, int du
   msg->flags = (dup ? 4 : 0) | (qos << 1) | retain;
   msg->state = MSG_STATE_INIT;
   
-  ts_mutex__lock(&(mgr->mu));
+  ts_mutex__lock(mgr->mu);
   msg->id = mgr->next_msg_id;
   mgr->next_msg_id++; // assume it won't overflow
   
   //DL_APPEND(mgr->message_cores, msg_core); // msg_core is only a ref to the src msg.
   DL_APPEND(mgr->messages, msg);
-  ts_mutex__unlock(&(mgr->mu));
+  ts_mutex__unlock(mgr->mu);
   
   return msg;
 }
 int tm_msg_mgr__unuse(tm_msg_mgr_t* mgr, tm_mqtt_msg_t* msg) {
   int msg_core_ref_cnt;
   
-  ts_mutex__lock(&(mgr->mu));
+  ts_mutex__lock(mgr->mu);
   
   msg_core_ref_cnt = tm_mqtt_msg_core__dec_ref(msg->msg_core);
   if (msg_core_ref_cnt == 0) {
@@ -272,7 +272,7 @@ int tm_msg_mgr__unuse(tm_msg_mgr_t* mgr, tm_mqtt_msg_t* msg) {
     ts__free(msg);
   }
   
-  ts_mutex__unlock(&(mgr->mu));
+  ts_mutex__unlock(mgr->mu);
   
   return 0;
 }

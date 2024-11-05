@@ -53,7 +53,7 @@ struct tm_topic_node_s {
 };
 
 struct tm_topics_s {
-    ts_mutex_t   mu;
+    ts_mutex_t* mu;
     tm_topic_node_t root;
     
     ts_error_t err;

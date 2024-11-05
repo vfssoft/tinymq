@@ -173,10 +173,10 @@ void tm_mqtt_conn__data_in(ts_t* server, ts_conn_t* c, const char* data, int len
   int err;
   tm_mqtt_conn_t* conn;
   int total_bytes_consumed = 0;
-  BOOL parsed = FALSE;
+  int parsed = 0;
   int pkt_bytes_cnt = 0;
   unsigned int remaining_length = 0;
-  BOOL use_in_buf = FALSE;
+  int use_in_buf = 0;
   const char* buf;
   int buf_len;
   ts_error_t errt;
@@ -191,12 +191,12 @@ void tm_mqtt_conn__data_in(ts_t* server, ts_conn_t* c, const char* data, int len
   if (ts_buf__get_length(conn->in_buf) == 0) {
     buf = data;
     buf_len = len;
-    use_in_buf = FALSE;
+    use_in_buf = 0;
   } else {
     ts_buf__write(conn->in_buf, data, len);
     buf = conn->in_buf->buf;
     buf_len = conn->in_buf->len;
-    use_in_buf = TRUE;
+    use_in_buf = 1;
   }
 
   while (1) {
@@ -465,12 +465,12 @@ int tm_mqtt_conn__pub_msg_to_conn(ts_t* server, ts_conn_t* c, tm_mqtt_msg_t* msg
     // resend
     // keep the old pkt_id
   
-    tm_mqtt_msg__set_failed(msg, FALSE); // reset the flag
+    tm_mqtt_msg__set_failed(msg, 0); // reset the flag
     
     // Outgoing
     if (msg_state == MSG_STATE_TO_PUBLISH || msg_state == MSG_STATE_WAIT_PUBACK || msg_state == MSG_STATE_WAIT_PUBREC) {
       // send the message again
-      tm_mqtt_msg__set_dup(msg, TRUE);
+      tm_mqtt_msg__set_dup(msg, 1);
       err = tm_mqtt_conn__encode_and_send_msg(server, c, msg);
       
     } else if (msg_state == MSG_STATE_SEND_PUBREL || msg_state == MSG_STATE_WAIT_PUBCOMP) {
@@ -484,7 +484,7 @@ int tm_mqtt_conn__pub_msg_to_conn(ts_t* server, ts_conn_t* c, tm_mqtt_msg_t* msg
     msg->pkt_id = conn->next_pkt_id;
     conn->next_pkt_id++;
   
-    tm_mqtt_msg__set_dup(msg, FALSE);
+    tm_mqtt_msg__set_dup(msg, 0);
     err = tm_mqtt_conn__encode_and_send_msg(server, c, msg);
     if (err) {
       return err;
