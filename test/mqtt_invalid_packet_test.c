@@ -4,6 +4,10 @@
 #include "mymqtt.h"
 #include "mytcp.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 typedef struct {
     char pkt_buf[1024];
     int pkt_buf_len;

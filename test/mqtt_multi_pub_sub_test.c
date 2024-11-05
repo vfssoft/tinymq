@@ -3,6 +3,10 @@
 #include "testutil.h"
 #include "mymqtt.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 static void mqtt_auth_user_anonymous_cb(void* ctx, tm_t* mq, const char* username, const char* password, int* ret_auth_ok) {
   *ret_auth_ok = 1;
 }

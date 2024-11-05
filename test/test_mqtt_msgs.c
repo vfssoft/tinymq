@@ -1,8 +1,9 @@
 
 #include "test_mqtt_msgs.h"
 
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 msg_t* msg__create(const char* topic, const char* payload, int payload_len, int qos, int retained, int dup) {

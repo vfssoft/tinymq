@@ -3,6 +3,10 @@
 #include "testutil.h"
 #include "mymqtt.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 typedef struct test_conn_info_s {
     int connected_fired;
     int disconnected_fired;

@@ -3,6 +3,10 @@
 #include "testutil.h"
 #include <mqtt_topics.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
 TEST_IMPL(mqtt_valid_topic_name_test) {
